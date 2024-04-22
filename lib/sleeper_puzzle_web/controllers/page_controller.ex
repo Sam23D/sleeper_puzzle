@@ -2,8 +2,15 @@ defmodule SleeperPuzzleWeb.PageController do
   use SleeperPuzzleWeb, :controller
 
   def home(conn, _params) do
-    # The home page is often custom made,
-    # so skip the default app layout.
-    render(conn, :home, layout: false)
+    node_type = if (SleeperPuzzle.Goose.where_are_you == node()) do
+      :goose
+    else
+      :duck
+    end
+
+    json(conn, %{
+      node_name: node(),
+      type: node_type
+      })
   end
 end

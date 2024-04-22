@@ -1,1 +1,8 @@
-<%= "Duck" || "Geese" %>
+<ul>
+    <li>
+        Node type
+    </li>
+    <li>
+        <%= if SleeperPuzzle.Goose.where_are_you == node(), do: "Goose", else: "Duck" %>
+    </li>
+</ul>
