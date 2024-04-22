@@ -9,19 +9,17 @@ defmodule SleeperPuzzle.Application do
   def start(_type, _args) do
     children = [
       SleeperPuzzleWeb.Telemetry,
-      SleeperPuzzle.Repo,
+
       {DNSCluster, query: Application.get_env(:sleeper_puzzle, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: SleeperPuzzle.PubSub},
-      # Start the Finch HTTP client for sending emails
       {Finch, name: SleeperPuzzle.Finch},
-      # Start a worker by calling: SleeperPuzzle.Worker.start_link(arg)
-      # {SleeperPuzzle.Worker, arg},
-      # Start to serve requests, typically the last entry
-      SleeperPuzzleWeb.Endpoint
+      SleeperPuzzleWeb.Endpoint,
+
+      {Cluster.Supervisor, [lib_cluster_topologies(), [name: SleeperPuzzle.ClusterSupervisor]]},
+      SleeperPuzzle.DynamicSupervisor,
+      {SleeperPuzzle.Goose.Starter, []}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: SleeperPuzzle.Supervisor]
     Supervisor.start_link(children, opts)
   end
@@ -33,4 +31,11 @@ defmodule SleeperPuzzle.Application do
     SleeperPuzzleWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  defp lib_cluster_topologies,
+    do: [
+      local: [
+        strategy: Cluster.Strategy.Gossip
+      ]
+    ]
 end
